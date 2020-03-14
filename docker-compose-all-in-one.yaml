@@ -1,0 +1,62 @@
+mongo:
+  image: mongo:3.6.16
+  hostname: mongo
+  volumes:
+  - /path/to/mongodb/data/folder:/data/db
+  - /path/to/mongodb/backup/folder:/data/backup
+  tty: true
+  stdin_open: true
+  container_name: mongo
+  log_opt:
+    max-size: "100m"
+    max-file: "10"
+nlweb-backend:
+  # NeoLoad Web Backend:
+  # - 8080: NeoLoad REST API Port
+  # - 8081: NeoLoad Files Service API Port
+  # - 9092: NeoLoad Web BackendEnd Monitoring
+  ports:
+  - 8080:1081
+  - 8081:1082
+  - 9082:9092
+  image: neotys/neoload-web-backend:latest
+  environment:
+    MEMORY_MAX: 1600m
+    MONGODB_HOST: mongo
+    MONGODB_PORT: 27017
+    MONGODB_MAX_POOLSIZE: 50
+    NEOLOAD_WEB_PUBLIC_URL: http://localhost/
+    NEOLOAD_WEB_API_PUBLIC_URL: http://localhost:8080
+    FILE_STORAGE_ROUTER_BASE_URL: http://localhost:8081
+    FILE_PROJECT_MAX_SIZE_IN_BYTES: 250000000
+    NLPROJECT_MAX_UPLOADED_FILES_PER_WEEK: 250
+    SEND_USAGE_STATISTICS: 'true'
+    NLWEB_SECRET_KEY: "" # set your passphrase here
+    DEPLOYMENT_TYPE: "docker-compose-all-in-one"
+  links:
+  - mongo
+  tty: true
+  stdin_open: true
+  container_name: nlweb-backend
+  log_opt:
+    max-size: "100m"
+    max-file: "10"
+nlweb-frontend:
+  # NeoLoad Web Frontend:
+  # - 80: NeoLoad Web Interface
+  # - 81: NeoLoad Web FrontEnd Monitoring
+  ports:
+  - 80:9090
+  - 81:9091
+  image: neotys/neoload-web-frontend:latest
+  environment:
+    MEMORY_MAX: 896m
+    DEPLOYMENT_TYPE: "docker-compose-all-in-one"
+  links:
+  - nlweb-backend
+  tty: true
+  stdin_open: true
+  container_name: nlweb-frontend
+  log_opt:
+    max-size: "100m"
+    max-file: "10"
